@@ -42,19 +42,20 @@ struct Assignment
 	char*  description;  // Assignment description
 };
 
-
 #endif
 
 
 //////////////////////////////////////////////////////////////
 //
 // Class declaration; modify but do not remove
+
 struct HWQ
 {
 	Assignment* assn;
 	HWQ* nextInQueue;
-};		
-bool check(const Assignment& assignment1, const Assignment& assignment2)
+};
+
+bool isEarlier(const Assignment& assignment1, const Assignment& assignment2)
 {
 	if(assignment1.dueMonth < assignment2.dueMonth) {
 		return true;
@@ -67,11 +68,10 @@ bool check(const Assignment& assignment1, const Assignment& assignment2)
 	}
 	else
 		return false;
-}					 
+}											 
 class HomeworkQueue 
 {
 public:
-	//bool check(const Assignment& assignment1, const Assignment& assignment2);
     bool                enqueue(const Assignment& assignment);
     const Assignment*   dequeue();
     int                 daysTillDue(const COURSE course);
@@ -81,8 +81,7 @@ public:
     HomeworkQueue();    //constructor
     ~HomeworkQueue();   //destructor
 private:
-HWQ* q = NULL;  
-	
+    HWQ* q; 
 };
 
 
@@ -91,6 +90,12 @@ HWQ* q = NULL;
 // Your code here ...
 //  
 
+HomeworkQueue::HomeworkQueue()
+{
+ q = new HWQ;
+ q->assn = NULL;
+ q->nextInQueue = NULL;
+}
 bool HomeworkQueue::enqueue(const Assignment& assignment)
 {
 	int days[13] = {0,31,29,31,30,31,30,31,31,30,31,30,31};
@@ -104,7 +109,7 @@ bool HomeworkQueue::enqueue(const Assignment& assignment)
 	}
 	HWQ* curr = q; //storing the value of head in curr
 	
-	if(!check(*curr->assn,assignment)) {
+	if(!isEarlier(*curr->assn,assignment)) {
 		HWQ* node = new HWQ;
 		node->assn = new Assignment;
 		*node->assn = assignment;
@@ -114,7 +119,7 @@ bool HomeworkQueue::enqueue(const Assignment& assignment)
 		return true;
 	}
 	else {
-		while(curr->nextInQueue != NULL && check(*curr->nextInQueue->assn,assignment)) {
+		while(curr->nextInQueue != NULL && isEarlier(*curr->nextInQueue->assn,assignment)) {
 			curr = curr->nextInQueue;
 		}
 		if(curr->nextInQueue == NULL) {
@@ -146,11 +151,13 @@ const Assignment* HomeworkQueue::dequeue()
 		q = q->nextInQueue;
 		return ass;
 	}
+	else
+		return NULL;
 }
 
 int HomeworkQueue::daysTillDue(const COURSE course)
 {
-	if(q == NULL) {
+	if(q->assn == NULL) {
 		return INT_MAX;
 	}
 		struct tm *theTime;
@@ -179,8 +186,7 @@ int HomeworkQueue::daysTillDue(const COURSE course)
 
 const Assignment* HomeworkQueue::dueIn(const int numDays)
 {
-	
-	if(q == NULL) {
+	if(q->assn == NULL) {
 		Assignment* ass = new Assignment;
 		ass->course = Null;
 		return ass;
@@ -240,23 +246,13 @@ const Assignment* HomeworkQueue::dueIn(const int numDays)
 	}
 	list[len] = ass[0];
 	return list;
-	
 }
-
-HomeworkQueue::HomeworkQueue()
-{
-
-}
-
 HomeworkQueue::~HomeworkQueue()
 {
-	
-    HWQ* clean = q;
-    HWQ* tmp = q;
-    while(tmp != NULL){
-        tmp = clean->nextInQueue;
-        delete clean;
-        clean = tmp;
+    while(q != NULL){
+       HWQ* curr = q;
+	   q = q->nextInQueue;
+	   delete curr;
     }
 }
 
